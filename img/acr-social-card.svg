@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630">
+  <defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#e2e8f0"/></linearGradient><radialGradient id="r"><stop stop-color="#94a3b8" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1200" height="630" fill="url(#bg)"/><circle cx="970" cy="80" r="430" fill="url(#r)"/><path d="M0 510 1200 235v395H0Z" fill="#f8fafc" opacity=".85"/>
+  <rect x="86" y="80" width="62" height="62" rx="16" fill="#0f172a"/><path d="m98 125 14-30h15l14 30h-10l-3-7h-18l-3 7H98Zm15-14h12l-6-13-6 13Z" fill="#fff"/>
+  <text x="170" y="126" fill="#0f172a" font-family="Inter,Arial,sans-serif" font-size="46" font-weight="700">ACR</text>
+  <text x="86" y="270" fill="#020617" font-family="Inter,Arial,sans-serif" font-size="68" font-weight="750">See clearly. Act quickly.</text>
+  <text x="86" y="345" fill="#475569" font-family="Inter,Arial,sans-serif" font-size="32">Observe and control every application you run.</text>
+  <g transform="translate(758 356)"><rect width="350" height="190" rx="18" fill="#fff" stroke="#cbd5e1"/><rect x="25" y="25" width="105" height="14" rx="7" fill="#e2e8f0"/><rect x="25" y="57" width="300" height="2" fill="#f1f5f9"/><path d="M30 145 85 110l55 18 55-65 55 39 70-54" fill="none" stroke="#0f172a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="320" cy="48" r="8" fill="#22c55e"/></g>
+</svg>

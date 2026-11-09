@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunklanding_page=self.webpackChunklanding_page||[]).push([["497"],{3192(e,a,c){c.d(a,{createArchitectureServices:()=>n.S});var n=c(4549);c(184)}}]);
