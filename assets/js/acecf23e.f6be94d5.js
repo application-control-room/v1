@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunklanding_page=self.webpackChunklanding_page||[]).push([["3220"],{1912(a){a.exports=JSON.parse('{"blogBasePath":"/v1/blog","blogTitle":"ACR blog","authorsListPath":"/v1/blog/authors"}')}}]);

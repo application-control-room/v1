@@ -1,0 +1,448 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <id>https://application-control-room.github.io/v1/blog</id>
+    <title>ACR blog</title>
+    <updated>2026-11-09T00:00:00.000Z</updated>
+    <generator>https://github.com/jpmonette/feed</generator>
+    <link rel="alternate" href="https://application-control-room.github.io/v1/blog"/>
+    <subtitle>ACR — Application Control Room Blog</subtitle>
+    <icon>https://application-control-room.github.io/v1/img/favicon.svg</icon>
+    <rights>© 2026 ACR · Application Control Room</rights>
+    <entry>
+        <title type="html"><![CDATA[When a release goes wrong: a five-step incident playbook]]></title>
+        <id>https://application-control-room.github.io/v1/blog/when-a-release-goes-wrong</id>
+        <link href="https://application-control-room.github.io/v1/blog/when-a-release-goes-wrong"/>
+        <updated>2026-11-09T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Detect, contain, communicate, fix and recover. A practical playbook for web app incidents, and the ACR feature that helps at each step.]]></summary>
+        <content type="html"><![CDATA[<p>Every team that ships will eventually ship something broken. What separates a five-minute blip from a lost evening is
+rarely the bug itself. It is how quickly you notice, how much of the damage you can stop before the fix exists, and
+whether your users know what is going on.</p>
+<p>This is a playbook for that moment. It has five steps, and at each one we point to the part of ACR built for it.</p>
+<!-- -->
+<!-- -->
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="1-detect-hear-about-it-before-your-users-tell-you">1. Detect: hear about it before your users tell you<a href="https://application-control-room.github.io/v1/blog/when-a-release-goes-wrong#1-detect-hear-about-it-before-your-users-tell-you" class="hash-link" aria-label="Direct link to 1. Detect: hear about it before your users tell you" title="Direct link to 1. Detect: hear about it before your users tell you" translate="no">​</a></h2>
+<p>The worst way to learn about an incident is a support ticket. Set up signals that reach you first.</p>
+<ul>
+<li class=""><strong>Alert rules.</strong> In <a class="" href="https://application-control-room.github.io/v1/features/alerts">Alerts</a>, create rules for the things that really mean trouble: a new or
+regressed error issue, an error spike, p95 latency above a threshold, poor Web Vitals, a release whose crash-free
+sessions drop, or an app that stops sending data. Send them to email, Slack, Discord, Teams or a webhook. Cooldowns
+and mute windows keep a noisy rule from paging you every minute.</li>
+<li class=""><strong>Uptime checks.</strong> <a class="" href="https://application-control-room.github.io/v1/features/uptime">Uptime</a> checks your public URLs every 5 to 60 minutes and opens an incident
+after the number of consecutive failures you choose, then resolves it when checks recover.</li>
+<li class=""><strong>Releases.</strong> If you set <code>appVersion</code> in your SDK, <a class="" href="https://application-control-room.github.io/v1/features/releases">Releases</a> shows adoption, crash-free sessions
+and newly introduced issues for each version. A bad release stands out in the comparison.</li>
+</ul>
+<p><strong>Tip:</strong> test every alert rule against your app's real traffic before you rely on it. A threshold that fires all the
+time gets muted; one that never fires is not protecting you.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="2-contain-stop-the-damage-before-the-fix-exists">2. Contain: stop the damage before the fix exists<a href="https://application-control-room.github.io/v1/blog/when-a-release-goes-wrong#2-contain-stop-the-damage-before-the-fix-exists" class="hash-link" aria-label="Direct link to 2. Contain: stop the damage before the fix exists" title="Direct link to 2. Contain: stop the damage before the fix exists" translate="no">​</a></h2>
+<p>This is the step most teams skip, because without the right levers the only option is "deploy a fix". You have faster
+options, from smallest to largest blast radius:</p>
+<p><strong>Turn the feature off.</strong> If the broken code is behind a <a class="" href="https://application-control-room.github.io/v1/blog/ship-behind-a-flag">feature flag</a>, switch the flag's
+<strong>Enabled</strong> off, or lower its rollout. Everyone receives the default value on the next poll.</p>
+<p><strong>Get users off the bad version.</strong> If the problem is in the browser bundle and you have already deployed a fix, open
+the release policy in <a class="" href="https://application-control-room.github.io/v1/features/controls">Controls</a> and set a <strong>minimum version</strong>. In <code>force</code> mode, tabs below it
+reload once onto the new code. Or send a one-shot <strong>reload</strong> command to every open tab.</p>
+<p><strong>Clear what is stuck.</strong> A bad service worker or a corrupted cache entry can keep serving broken assets after you
+fixed them. A <strong>clear cache</strong> command tells every browser running the app to drop Cache Storage, service workers,
+local storage, session storage, IndexedDB or script-readable cookies (you choose which), and optionally reload. Each
+browser applies it at most once, and the command history shows how many reachable browsers have applied it.</p>
+<p><strong>Close the doors.</strong> If the problem risks data, such as broken payments or writes that corrupt records, turn on
+<strong>maintenance mode</strong>. Browser SDKs cover the app with a full-page screen. Add your own user ids to the exemption list
+so your team can keep testing in production. On servers, the Express middleware and the NestJS guard answer <code>503</code>
+with <code>Retry-After</code> when you enable them, while health checks keep passing.</p>
+<p><strong>Quiet the noise.</strong> In the rare case that your own telemetry is part of the problem, such as a log loop flooding the
+network, lower the sample rate, raise the minimum log level, or use the collection kill switch.</p>
+<p>Controls, announcements and commands need the <strong>admin</strong> role, because they affect every user at once. Decide in
+advance who on your team holds it, so you are not hunting for an admin mid-incident.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="3-communicate-tell-people-before-they-guess">3. Communicate: tell people before they guess<a href="https://application-control-room.github.io/v1/blog/when-a-release-goes-wrong#3-communicate-tell-people-before-they-guess" class="hash-link" aria-label="Direct link to 3. Communicate: tell people before they guess" title="Direct link to 3. Communicate: tell people before they guess" translate="no">​</a></h2>
+<p>Silence makes every incident feel worse. A short message buys a lot of patience.</p>
+<ul>
+<li class=""><strong>Announcement banner.</strong> Publish an announcement with severity <code>warning</code> or <code>critical</code>, a message such as "Payments
+are delayed. Your orders are safe, and we are working on it.", and optionally a link to a status page. Every visitor
+sees it on the next poll. Schedule an end time, or end it yourself when things are fixed.</li>
+<li class=""><strong>Maintenance message.</strong> If you closed the doors, the maintenance screen <em>is</em> your message. Say what is happening and
+roughly when you expect to be back. The expected time is informational; maintenance never ends by itself.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="4-fix-from-symptom-to-line">4. Fix: from symptom to line<a href="https://application-control-room.github.io/v1/blog/when-a-release-goes-wrong#4-fix-from-symptom-to-line" class="hash-link" aria-label="Direct link to 4. Fix: from symptom to line" title="Direct link to 4. Fix: from symptom to line" translate="no">​</a></h2>
+<p>Now that the damage is contained, you can fix the bug calmly instead of under fire.</p>
+<ul>
+<li class=""><strong>Errors</strong> groups occurrences into one issue with a readable stack trace, the affected users and the versions it
+appeared in. If you upload source maps through CI, browser stack traces point to your original code instead of the
+minified bundle.</li>
+<li class=""><strong>Logs</strong> let you filter by level, source, message or trace id around the time of the incident, and tail new lines
+live while you reproduce.</li>
+<li class=""><strong>Performance</strong> shows whether a route became slower, at p50, p95 and p99, if the problem is speed rather than
+failure.</li>
+</ul>
+<p>Ship the fix with a new <code>appVersion</code>, so you can see it take over in Releases.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="5-recover-reopen-carefully-then-learn">5. Recover: reopen carefully, then learn<a href="https://application-control-room.github.io/v1/blog/when-a-release-goes-wrong#5-recover-reopen-carefully-then-learn" class="hash-link" aria-label="Direct link to 5. Recover: reopen carefully, then learn" title="Direct link to 5. Recover: reopen carefully, then learn" translate="no">​</a></h2>
+<p>Undo your containment in the reverse order you applied it, and watch as you go:</p>
+<ol>
+<li class="">Check the fix yourself first. If you used maintenance mode, your exempt user id lets you use the real app.</li>
+<li class="">Turn maintenance off, or bring the flag back to a small rollout instead of jumping straight to 100%.</li>
+<li class="">End the announcement, or replace it with a short "resolved" message.</li>
+<li class="">Watch Errors and Releases until the new version carries most sessions and the issue stops recurring.</li>
+<li class="">Resolve the alert incident.</li>
+</ol>
+<p>Then write down what happened while it is fresh: how you noticed, how long containment took, and what would have made
+it faster. Usually the answer is one more flag around a risky change, or one more alert rule that would have fired
+sooner.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-playbook-on-one-page">The playbook on one page<a href="https://application-control-room.github.io/v1/blog/when-a-release-goes-wrong#the-playbook-on-one-page" class="hash-link" aria-label="Direct link to The playbook on one page" title="Direct link to The playbook on one page" translate="no">​</a></h2>
+<table><thead><tr><th>Step</th><th>Goal</th><th>In ACR</th></tr></thead><tbody><tr><td>Detect</td><td>Know first</td><td>Alerts, Uptime, Releases</td></tr><tr><td>Contain</td><td>Stop the damage</td><td>Flags, release policy, reload and clear cache, maintenance, kill switch</td></tr><tr><td>Communicate</td><td>Keep trust</td><td>Announcements, maintenance message</td></tr><tr><td>Fix</td><td>Find the cause</td><td>Errors, Logs, Performance, source maps</td></tr><tr><td>Recover</td><td>Reopen safely</td><td>Gradual rollout, Releases, resolving incidents</td></tr></tbody></table>
+<p>The best time to set this up is before you need it. Add an alert rule, wrap your next risky feature in a flag, and make
+sure someone on the team knows where the maintenance switch is. Read <a class="" href="https://application-control-room.github.io/v1/docs/usage/controls">Remote controls</a> for every
+lever in detail.</p>]]></content>
+        <author>
+            <name>ACR team</name>
+        </author>
+        <category label="Incidents" term="Incidents"/>
+        <category label="Running production" term="Running production"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Ship behind a flag: gradual rollouts without a redeploy]]></title>
+        <id>https://application-control-room.github.io/v1/blog/ship-behind-a-flag</id>
+        <link href="https://application-control-room.github.io/v1/blog/ship-behind-a-flag"/>
+        <updated>2026-11-03T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[How ACR feature flags work, why each user keeps the same result, and a step-by-step recipe for taking a feature from 0% to 100% safely.]]></summary>
+        <content type="html"><![CDATA[<p>The safest deploy is one that changes nothing. Merge the new code, ship it switched off, and decide later, from a
+console, who gets to see it. If it misbehaves, switch it off again. No revert, no hotfix, no second deploy.</p>
+<p>That is what feature flags are for. This post explains how flags work in ACR and walks through a rollout recipe you can
+use on your next feature.</p>
+<!-- -->
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="decouple-deploying-from-releasing">Decouple deploying from releasing<a href="https://application-control-room.github.io/v1/blog/ship-behind-a-flag#decouple-deploying-from-releasing" class="hash-link" aria-label="Direct link to Decouple deploying from releasing" title="Direct link to Decouple deploying from releasing" translate="no">​</a></h2>
+<p>Without flags, <strong>deploying</strong> code and <strong>releasing</strong> a feature are the same event. Every deploy is a bet on everything
+inside it, and the only way to back out is another deploy.</p>
+<p>With a flag, they come apart:</p>
+<ul>
+<li class=""><strong>Deploy</strong> whenever the code is ready, with the feature off.</li>
+<li class=""><strong>Release</strong> when you choose: to your team, then a small share of users, then everyone.</li>
+<li class=""><strong>Roll back</strong> by changing a number in the console. The change reaches running apps on their next poll, about a
+minute later.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="creating-a-flag">Creating a flag<a href="https://application-control-room.github.io/v1/blog/ship-behind-a-flag#creating-a-flag" class="hash-link" aria-label="Direct link to Creating a flag" title="Direct link to Creating a flag" translate="no">​</a></h2>
+<p>In the ACR console, open <strong>Flags</strong> and create one. The fields that matter most:</p>
+<table><thead><tr><th>Field</th><th>What it does</th></tr></thead><tbody><tr><td><strong>Key</strong></td><td>The name your code reads, such as <code>new-checkout</code>. It cannot change later, so pick it carefully</td></tr><tr><td><strong>Type</strong></td><td><code>boolean</code>, <code>string</code>, <code>number</code> or <code>json</code></td></tr><tr><td><strong>Enabled</strong></td><td>A disabled flag always returns the default, whatever else is configured</td></tr><tr><td><strong>Value</strong></td><td>What people inside the rollout or allow-list receive</td></tr><tr><td><strong>Default value</strong></td><td>What everyone else receives</td></tr><tr><td><strong>Rollout</strong></td><td>The percentage of users who receive the value, from 0 to 100</td></tr><tr><td><strong>Always on for these users</strong></td><td>Up to 100 user ids that always receive the value</td></tr></tbody></table>
+<p>Developers and above can create and edit flags; everyone on the app can read them.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="reading-a-flag-in-code">Reading a flag in code<a href="https://application-control-room.github.io/v1/blog/ship-behind-a-flag#reading-a-flag-in-code" class="hash-link" aria-label="Direct link to Reading a flag in code" title="Direct link to Reading a flag in code" translate="no">​</a></h2>
+<p>Every ACR SDK can read flags. In React:</p>
+<div class="code-frame"><div class="code-frame__head"><span class="code-frame__dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="code-frame__label">TSX</span></div><div class="language-tsx codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#e2e8f0;--prism-background-color:#020617"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-tsx codeBlock_bY9V thin-scrollbar" style="color:#e2e8f0;background-color:#020617"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#e2e8f0"><span class="token keyword" style="color:#c4b5fd">import</span><span class="token plain"> </span><span class="token imports punctuation" style="color:#94a3b8">{</span><span class="token imports" style="color:#c4b5fd"> useFlag </span><span class="token imports punctuation" style="color:#94a3b8">}</span><span class="token plain"> </span><span class="token keyword" style="color:#c4b5fd">from</span><span class="token plain"> </span><span class="token string" style="color:#86efac">'@lib-acr/react'</span><span class="token punctuation" style="color:#94a3b8">;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain"></span><span class="token keyword" style="color:#c4b5fd">export</span><span class="token plain"> </span><span class="token keyword" style="color:#c4b5fd">function</span><span class="token plain"> </span><span class="token function" style="color:#7dd3fc">Checkout</span><span class="token punctuation" style="color:#94a3b8">(</span><span class="token punctuation" style="color:#94a3b8">)</span><span class="token plain"> </span><span class="token punctuation" style="color:#94a3b8">{</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain">  </span><span class="token keyword" style="color:#c4b5fd">const</span><span class="token plain"> newCheckout </span><span class="token operator" style="color:#cbd5e1">=</span><span class="token plain"> </span><span class="token function" style="color:#7dd3fc">useFlag</span><span class="token punctuation" style="color:#94a3b8">(</span><span class="token string" style="color:#86efac">'new-checkout'</span><span class="token punctuation" style="color:#94a3b8">,</span><span class="token plain"> </span><span class="token boolean" style="color:#fdba74">false</span><span class="token punctuation" style="color:#94a3b8">)</span><span class="token punctuation" style="color:#94a3b8">;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain">  </span><span class="token keyword" style="color:#c4b5fd">return</span><span class="token plain"> newCheckout </span><span class="token operator" style="color:#cbd5e1">?</span><span class="token plain"> </span><span class="token tag punctuation" style="color:#94a3b8">&lt;</span><span class="token tag class-name" style="color:#fde68a">NewCheckout</span><span class="token tag" style="color:#7dd3fc"> </span><span class="token tag punctuation" style="color:#94a3b8">/&gt;</span><span class="token plain"> </span><span class="token operator" style="color:#cbd5e1">:</span><span class="token plain"> </span><span class="token tag punctuation" style="color:#94a3b8">&lt;</span><span class="token tag class-name" style="color:#fde68a">OldCheckout</span><span class="token tag" style="color:#7dd3fc"> </span><span class="token tag punctuation" style="color:#94a3b8">/&gt;</span><span class="token punctuation" style="color:#94a3b8">;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain"></span><span class="token punctuation" style="color:#94a3b8">}</span><br></div></code></pre></div></div></div>
+<p>In a plain browser app it is <code>acr.flag('new-checkout', false)</code>. On a server, the Node.js SDK does not know who the
+request is for, so you pass the user:</p>
+<div class="code-frame"><div class="code-frame__head"><span class="code-frame__dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="code-frame__label">TypeScript</span></div><div class="language-ts codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#e2e8f0;--prism-background-color:#020617"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-ts codeBlock_bY9V thin-scrollbar" style="color:#e2e8f0;background-color:#020617"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#e2e8f0"><span class="token keyword" style="color:#c4b5fd">const</span><span class="token plain"> enabled </span><span class="token operator" style="color:#cbd5e1">=</span><span class="token plain"> acr</span><span class="token punctuation" style="color:#94a3b8">.</span><span class="token function" style="color:#7dd3fc">flag</span><span class="token punctuation" style="color:#94a3b8">(</span><span class="token string" style="color:#86efac">'new-checkout'</span><span class="token punctuation" style="color:#94a3b8">,</span><span class="token plain"> </span><span class="token boolean" style="color:#fdba74">false</span><span class="token punctuation" style="color:#94a3b8">,</span><span class="token plain"> </span><span class="token punctuation" style="color:#94a3b8">{</span><span class="token plain"> userId</span><span class="token operator" style="color:#cbd5e1">:</span><span class="token plain"> req</span><span class="token punctuation" style="color:#94a3b8">.</span><span class="token plain">user</span><span class="token operator" style="color:#cbd5e1">?.</span><span class="token plain">id </span><span class="token punctuation" style="color:#94a3b8">}</span><span class="token punctuation" style="color:#94a3b8">)</span><span class="token punctuation" style="color:#94a3b8">;</span><br></div></code></pre></div></div></div>
+<p>The second argument is the fallback your code uses when the flag does not exist yet, or before the first snapshot
+arrives.</p>
+<p>Two properties make this cheap enough to use everywhere:</p>
+<ul>
+<li class=""><strong>No network request per check.</strong> The SDK keeps the latest control snapshot in memory and evaluates flags locally. A
+flag check is a function call, not an API call.</li>
+<li class=""><strong>It keeps working offline.</strong> If ACR is unreachable, the SDK uses the last values it saw. If it never saw any, your
+fallback wins.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="why-each-user-keeps-the-same-result">Why each user keeps the same result<a href="https://application-control-room.github.io/v1/blog/ship-behind-a-flag#why-each-user-keeps-the-same-result" class="hash-link" aria-label="Direct link to Why each user keeps the same result" title="Direct link to Why each user keeps the same result" translate="no">​</a></h2>
+<p>A rollout is only useful if it is stable. If a user saw the new checkout on one page load and the old one on the next,
+your rollout would be a source of bugs, not a safety net.</p>
+<p>ACR evaluates a flag in a fixed order:</p>
+<ol>
+<li class=""><strong>Missing or disabled</strong> → the default.</li>
+<li class="">The <strong>subject</strong> is your identified user id, or the visitor's anonymous id if you have not called <code>identify()</code>.</li>
+<li class="">Subject in the <strong>allow-list</strong> → the value.</li>
+<li class="">Otherwise, a <strong>stable hash</strong> of the flag key and the subject gives a bucket from 0 to 99. A bucket below the rollout
+percentage receives the value; everyone else gets the default.</li>
+</ol>
+<p>Because the bucket depends only on the flag key and the subject:</p>
+<ul>
+<li class=""><strong>The same person always lands in the same bucket</strong>, on every device where you identify them, in the browser and
+on the server.</li>
+<li class=""><strong>Raising the rollout only adds people.</strong> Going from 25% to 50% keeps everyone who already had the feature and adds
+the next 25 buckets. Nobody flips back and forth.</li>
+<li class=""><strong>Lowering it removes people</strong> in the reverse order, which is exactly what you want when something looks wrong.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-rollout-recipe">The rollout recipe<a href="https://application-control-room.github.io/v1/blog/ship-behind-a-flag#the-rollout-recipe" class="hash-link" aria-label="Direct link to The rollout recipe" title="Direct link to The rollout recipe" translate="no">​</a></h2>
+<p>Here is a sequence that works for most features.</p>
+<p><strong>1. Ship it dark.</strong> Create the flag with <strong>Enabled</strong> on, <strong>Rollout 0%</strong>, and your team's user ids in the allow-list.
+Deploy the code. Nobody outside your team sees anything.</p>
+<p><strong>2. Test in production.</strong> Use the real app, with real data and real traffic around you. This catches what staging
+never does: production config, third-party scripts, real browsers.</p>
+<p><strong>3. Open it to 5%.</strong> Watch <a class="" href="https://application-control-room.github.io/v1/features/errors">Errors</a> for new issues and <a class="" href="https://application-control-room.github.io/v1/features/performance">Performance</a> for
+slower routes. Give it long enough to see a normal day's traffic.</p>
+<p><strong>4. Step up: 25%, then 50%.</strong> Keep watching. If you run a <a class="" href="https://application-control-room.github.io/v1/features/releases">release</a> at the same time, compare its
+crash-free sessions against the previous version.</p>
+<p><strong>5. Go to 100%.</strong> Leave the flag in place for a while as a kill switch.</p>
+<p><strong>6. Clean up.</strong> Once you are confident, remove the flag check from the code and delete the flag. Flags that live
+forever become a second, invisible configuration system.</p>
+<p><strong>If anything goes wrong at any step:</strong> switch <strong>Enabled</strong> off. Every user gets the default on the next poll, about a
+minute later, and immediately when a browser tab comes back into focus.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="beyond-on-and-off">Beyond on and off<a href="https://application-control-room.github.io/v1/blog/ship-behind-a-flag#beyond-on-and-off" class="hash-link" aria-label="Direct link to Beyond on and off" title="Direct link to Beyond on and off" translate="no">​</a></h2>
+<p>Boolean flags cover most rollouts, but ACR flags can do more:</p>
+<ul>
+<li class=""><strong>Typed values.</strong> A <code>number</code> flag can tune a limit, a <code>string</code> flag can pick a copy variant, and a <code>json</code> flag can
+carry a small configuration object of up to 4 KB.</li>
+<li class=""><strong>Targeting rules.</strong> Ordered conditions on user or visitor attributes decide who receives which value.</li>
+<li class=""><strong>Weighted variants.</strong> Serve more than two named variants in fixed proportions.</li>
+<li class=""><strong>Scheduled changes.</strong> Plan a rollout step, a value change or an enable for a specific time.</li>
+<li class=""><strong>Experiments.</strong> Give a flag two or more variants, pick a conversion event such as <code>purchase_completed</code>, and
+<a class="" href="https://application-control-room.github.io/v1/features/experiments">Experiments</a> compare conversion rates and tell you when the difference is statistically
+significant.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="one-rule-no-secrets-in-flags">One rule: no secrets in flags<a href="https://application-control-room.github.io/v1/blog/ship-behind-a-flag#one-rule-no-secrets-in-flags" class="hash-link" aria-label="Direct link to One rule: no secrets in flags" title="Direct link to One rule: no secrets in flags" translate="no">​</a></h2>
+<p>Flag values are delivered to browsers. Anyone can read them in developer tools. Use flags to decide <em>what</em> to show,
+never to carry API keys, tokens or anything else you would not print on the page.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="try-it-on-your-next-feature">Try it on your next feature<a href="https://application-control-room.github.io/v1/blog/ship-behind-a-flag#try-it-on-your-next-feature" class="hash-link" aria-label="Direct link to Try it on your next feature" title="Direct link to Try it on your next feature" translate="no">​</a></h2>
+<p>Pick the riskiest thing you are building this week, wrap it in <code>useFlag</code> or <code>acr.flag</code>, and ship it at 0%. The full
+reference is in <a class="" href="https://application-control-room.github.io/v1/docs/usage/feature-flags">Feature flags</a>. If you have not connected an app yet, start with
+<a class="" href="https://application-control-room.github.io/v1/docs/getting-started/connect-your-first-app">Connect your first app</a>.</p>]]></content>
+        <author>
+            <name>ACR team</name>
+        </author>
+        <category label="Feature flags" term="Feature flags"/>
+        <category label="Running production" term="Running production"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[You vibe coded it in a weekend. Now run production the same way.]]></title>
+        <id>https://application-control-room.github.io/v1/blog/vibe-coded-it-now-run-it</id>
+        <link href="https://application-control-room.github.io/v1/blog/vibe-coded-it-now-run-it"/>
+        <updated>2026-10-27T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[AI assistants made building an app fast and conversational. Running it in production is still slow and scary. ACR brings the same "describe it, see it, change it" feel to the part that comes after launch.]]></summary>
+        <content type="html"><![CDATA[<p>Building software has never been faster. You describe a screen, an AI assistant writes it, you look at it in the
+browser, you ask for a change, and an hour later you have something that used to take a sprint. People call it vibe
+coding, and whatever you think of the name, the result is real: more apps reach production, built by smaller teams,
+sometimes by one person.</p>
+<p>Then the app goes live, and the vibe stops.</p>
+<!-- -->
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-gap-after-launch">The gap after launch<a href="https://application-control-room.github.io/v1/blog/vibe-coded-it-now-run-it#the-gap-after-launch" class="hash-link" aria-label="Direct link to The gap after launch" title="Direct link to The gap after launch" translate="no">​</a></h2>
+<p>Production asks questions that the build loop never did:</p>
+<ul>
+<li class="">Is anyone actually using it? Which pages do they visit, and where do they drop off?</li>
+<li class="">What is breaking right now, for whom, and since which version?</li>
+<li class="">That new feature you generated on Tuesday: can you turn it off without regenerating and redeploying everything?</li>
+<li class="">Users are stuck on an old bundle. How do you get them onto the new one?</li>
+<li class="">You need to take the app down for ten minutes. Do you have a maintenance page? Does it reach people who already have
+the app open?</li>
+</ul>
+<p>When you build fast, you also accumulate code you did not write line by line. That is fine while you are iterating in
+your editor. In production it means <strong>you need to see what that code is doing</strong>, and <strong>you need a way to change its
+behaviour faster than you can change the code</strong>.</p>
+<p>Most teams answer this with a stack of tools, each with its own setup, its own dashboard and its own learning curve. For
+someone who just built an entire app in a weekend, that is a strange step backwards.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="run-production-like-you-built-it">Run production like you built it<a href="https://application-control-room.github.io/v1/blog/vibe-coded-it-now-run-it#run-production-like-you-built-it" class="hash-link" aria-label="Direct link to Run production like you built it" title="Direct link to Run production like you built it" translate="no">​</a></h2>
+<p>The thing that makes vibe coding feel good is a tight loop: <strong>describe → see → adjust</strong>. ACR gives you the same loop
+for a running app.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="see-it-one-install-instant-signal">See it: one install, instant signal<a href="https://application-control-room.github.io/v1/blog/vibe-coded-it-now-run-it#see-it-one-install-instant-signal" class="hash-link" aria-label="Direct link to See it: one install, instant signal" title="Direct link to See it: one install, instant signal" translate="no">​</a></h3>
+<p>Add one SDK and the app starts telling you what is happening. For a React app it is a provider around your root:</p>
+<div class="code-frame"><div class="code-frame__head"><span class="code-frame__dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="code-frame__label">TSX</span></div><div class="language-tsx codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#e2e8f0;--prism-background-color:#020617"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-tsx codeBlock_bY9V thin-scrollbar" style="color:#e2e8f0;background-color:#020617"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#e2e8f0"><span class="token keyword" style="color:#c4b5fd">import</span><span class="token plain"> </span><span class="token imports punctuation" style="color:#94a3b8">{</span><span class="token imports" style="color:#c4b5fd"> </span><span class="token imports maybe-class-name" style="color:#fde68a">ACRProvider</span><span class="token imports" style="color:#c4b5fd"> </span><span class="token imports punctuation" style="color:#94a3b8">}</span><span class="token plain"> </span><span class="token keyword" style="color:#c4b5fd">from</span><span class="token plain"> </span><span class="token string" style="color:#86efac">'@lib-acr/react'</span><span class="token punctuation" style="color:#94a3b8">;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain"></span><span class="token function" style="color:#7dd3fc">createRoot</span><span class="token punctuation" style="color:#94a3b8">(</span><span class="token dom variable" style="color:#f1f5f9">document</span><span class="token punctuation" style="color:#94a3b8">.</span><span class="token method function property-access" style="color:#e2e8f0">getElementById</span><span class="token punctuation" style="color:#94a3b8">(</span><span class="token string" style="color:#86efac">'root'</span><span class="token punctuation" style="color:#94a3b8">)</span><span class="token operator" style="color:#cbd5e1">!</span><span class="token punctuation" style="color:#94a3b8">)</span><span class="token punctuation" style="color:#94a3b8">.</span><span class="token method function property-access" style="color:#e2e8f0">render</span><span class="token punctuation" style="color:#94a3b8">(</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain">  </span><span class="token tag punctuation" style="color:#94a3b8">&lt;</span><span class="token tag class-name" style="color:#fde68a">ACRProvider</span><span class="token tag" style="color:#7dd3fc"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token tag" style="color:#7dd3fc">    </span><span class="token tag attr-name" style="color:#c4b5fd">config</span><span class="token tag script language-javascript script-punctuation punctuation" style="color:#94a3b8">=</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">{</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">{</span><span class="token tag script language-javascript" style="color:#7dd3fc"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token tag script language-javascript" style="color:#7dd3fc">      apiKey</span><span class="token tag script language-javascript operator" style="color:#cbd5e1">:</span><span class="token tag script language-javascript" style="color:#7dd3fc"> </span><span class="token tag script language-javascript keyword" style="color:#c4b5fd">import</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">.</span><span class="token tag script language-javascript property-access" style="color:#e2e8f0">meta</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">.</span><span class="token tag script language-javascript property-access" style="color:#e2e8f0">env</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">.</span><span class="token tag script language-javascript constant" style="color:#fdba74">VITE_ACR_API_KEY</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">,</span><span class="token tag script language-javascript" style="color:#7dd3fc"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token tag script language-javascript" style="color:#7dd3fc">      endpoint</span><span class="token tag script language-javascript operator" style="color:#cbd5e1">:</span><span class="token tag script language-javascript" style="color:#7dd3fc"> </span><span class="token tag script language-javascript keyword" style="color:#c4b5fd">import</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">.</span><span class="token tag script language-javascript property-access" style="color:#e2e8f0">meta</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">.</span><span class="token tag script language-javascript property-access" style="color:#e2e8f0">env</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">.</span><span class="token tag script language-javascript constant" style="color:#fdba74">VITE_ACR_ENDPOINT</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">,</span><span class="token tag script language-javascript" style="color:#7dd3fc"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token tag script language-javascript" style="color:#7dd3fc">      appVersion</span><span class="token tag script language-javascript operator" style="color:#cbd5e1">:</span><span class="token tag script language-javascript" style="color:#7dd3fc"> </span><span class="token tag script language-javascript string" style="color:#86efac">'1.0.0'</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">,</span><span class="token tag script language-javascript" style="color:#7dd3fc"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token tag script language-javascript" style="color:#7dd3fc">    </span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">}</span><span class="token tag script language-javascript punctuation" style="color:#94a3b8">}</span><span class="token tag" style="color:#7dd3fc"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token tag" style="color:#7dd3fc">  </span><span class="token tag punctuation" style="color:#94a3b8">&gt;</span><span class="token plain-text"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain-text">    </span><span class="token tag punctuation" style="color:#94a3b8">&lt;</span><span class="token tag class-name" style="color:#fde68a">App</span><span class="token tag" style="color:#7dd3fc"> </span><span class="token tag punctuation" style="color:#94a3b8">/&gt;</span><span class="token plain-text"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain-text">  </span><span class="token tag punctuation" style="color:#94a3b8">&lt;/</span><span class="token tag class-name" style="color:#fde68a">ACRProvider</span><span class="token tag punctuation" style="color:#94a3b8">&gt;</span><span class="token punctuation" style="color:#94a3b8">,</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain"></span><span class="token punctuation" style="color:#94a3b8">)</span><span class="token punctuation" style="color:#94a3b8">;</span><br></div></code></pre></div></div></div>
+<p>That one change gives you visitors and sessions, page views, Core Web Vitals, and uncaught errors grouped into issues
+with stack traces. The ACR console has copy-ready snippets for React, Angular, plain browser apps, Node.js, Express and
+NestJS, so this is also an easy thing to hand to your assistant: "add the ACR SDK using this snippet" is a one-shot
+prompt.</p>
+<p>When you want more, describe what matters in your own words and record it:</p>
+<div class="code-frame"><div class="code-frame__head"><span class="code-frame__dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="code-frame__label">TSX</span></div><div class="language-tsx codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#e2e8f0;--prism-background-color:#020617"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-tsx codeBlock_bY9V thin-scrollbar" style="color:#e2e8f0;background-color:#020617"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#e2e8f0"><span class="token keyword" style="color:#c4b5fd">import</span><span class="token plain"> </span><span class="token imports punctuation" style="color:#94a3b8">{</span><span class="token imports" style="color:#c4b5fd"> useACREvent </span><span class="token imports punctuation" style="color:#94a3b8">}</span><span class="token plain"> </span><span class="token keyword" style="color:#c4b5fd">from</span><span class="token plain"> </span><span class="token string" style="color:#86efac">'@lib-acr/react'</span><span class="token punctuation" style="color:#94a3b8">;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain"></span><span class="token keyword" style="color:#c4b5fd">const</span><span class="token plain"> track </span><span class="token operator" style="color:#cbd5e1">=</span><span class="token plain"> </span><span class="token function" style="color:#7dd3fc">useACREvent</span><span class="token punctuation" style="color:#94a3b8">(</span><span class="token punctuation" style="color:#94a3b8">)</span><span class="token punctuation" style="color:#94a3b8">;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain"></span><span class="token function" style="color:#7dd3fc">track</span><span class="token punctuation" style="color:#94a3b8">(</span><span class="token string" style="color:#86efac">'checkout_started'</span><span class="token punctuation" style="color:#94a3b8">,</span><span class="token plain"> </span><span class="token punctuation" style="color:#94a3b8">{</span><span class="token plain"> cartSize</span><span class="token operator" style="color:#cbd5e1">:</span><span class="token plain"> </span><span class="token number" style="color:#fdba74">3</span><span class="token plain"> </span><span class="token punctuation" style="color:#94a3b8">}</span><span class="token punctuation" style="color:#94a3b8">)</span><span class="token punctuation" style="color:#94a3b8">;</span><br></div></code></pre></div></div></div>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="adjust-it-switches-instead-of-redeploys">Adjust it: switches instead of redeploys<a href="https://application-control-room.github.io/v1/blog/vibe-coded-it-now-run-it#adjust-it-switches-instead-of-redeploys" class="hash-link" aria-label="Direct link to Adjust it: switches instead of redeploys" title="Direct link to Adjust it: switches instead of redeploys" translate="no">​</a></h3>
+<p>This is where ACR differs from a dashboard. Every change below happens from the console, reaches running apps in about
+a minute, and needs no new build:</p>
+<table><thead><tr><th>You want to…</th><th>In ACR</th></tr></thead><tbody><tr><td>Hide a feature that is misbehaving</td><td>Turn its <a class="" href="https://application-control-room.github.io/v1/features/flags">feature flag</a> off</td></tr><tr><td>Try a feature on yourself first</td><td>Put your user id in the flag's allow-list, rollout 0% for everyone else</td></tr><tr><td>Release it gradually</td><td>Raise the rollout: 5%, 25%, 50%, 100%</td></tr><tr><td>Take the app down briefly</td><td>Turn on <a class="" href="https://application-control-room.github.io/v1/docs/usage/controls#maintenance-mode">maintenance mode</a>, with your own id exempt</td></tr><tr><td>Tell users something</td><td>Publish an announcement banner</td></tr><tr><td>Get everyone onto the new version</td><td>Set a release policy, or reload every open tab</td></tr><tr><td>Fix a broken service worker or cache</td><td>Send a clear-cache command to every browser</td></tr></tbody></table>
+<p>Wrapping new work in a flag is a one-line habit that pays off immediately:</p>
+<div class="code-frame"><div class="code-frame__head"><span class="code-frame__dots" aria-hidden="true"><i></i><i></i><i></i></span><span class="code-frame__label">TSX</span></div><div class="language-tsx codeBlockContainer_Ckt0 theme-code-block" style="--prism-color:#e2e8f0;--prism-background-color:#020617"><div class="codeBlockContent_QJqH"><pre tabindex="0" class="prism-code language-tsx codeBlock_bY9V thin-scrollbar" style="color:#e2e8f0;background-color:#020617"><code class="codeBlockLines_e6Vv"><div class="token-line" style="color:#e2e8f0"><span class="token keyword" style="color:#c4b5fd">import</span><span class="token plain"> </span><span class="token imports punctuation" style="color:#94a3b8">{</span><span class="token imports" style="color:#c4b5fd"> useFlag </span><span class="token imports punctuation" style="color:#94a3b8">}</span><span class="token plain"> </span><span class="token keyword" style="color:#c4b5fd">from</span><span class="token plain"> </span><span class="token string" style="color:#86efac">'@lib-acr/react'</span><span class="token punctuation" style="color:#94a3b8">;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain" style="display:inline-block"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain"></span><span class="token keyword" style="color:#c4b5fd">const</span><span class="token plain"> newCheckout </span><span class="token operator" style="color:#cbd5e1">=</span><span class="token plain"> </span><span class="token function" style="color:#7dd3fc">useFlag</span><span class="token punctuation" style="color:#94a3b8">(</span><span class="token string" style="color:#86efac">'new-checkout'</span><span class="token punctuation" style="color:#94a3b8">,</span><span class="token plain"> </span><span class="token boolean" style="color:#fdba74">false</span><span class="token punctuation" style="color:#94a3b8">)</span><span class="token punctuation" style="color:#94a3b8">;</span><span class="token plain"></span><br></div><div class="token-line" style="color:#e2e8f0"><span class="token plain"></span><span class="token keyword" style="color:#c4b5fd">return</span><span class="token plain"> newCheckout </span><span class="token operator" style="color:#cbd5e1">?</span><span class="token plain"> </span><span class="token tag punctuation" style="color:#94a3b8">&lt;</span><span class="token tag class-name" style="color:#fde68a">NewCheckout</span><span class="token tag" style="color:#7dd3fc"> </span><span class="token tag punctuation" style="color:#94a3b8">/&gt;</span><span class="token plain"> </span><span class="token operator" style="color:#cbd5e1">:</span><span class="token plain"> </span><span class="token tag punctuation" style="color:#94a3b8">&lt;</span><span class="token tag class-name" style="color:#fde68a">OldCheckout</span><span class="token tag" style="color:#7dd3fc"> </span><span class="token tag punctuation" style="color:#94a3b8">/&gt;</span><span class="token punctuation" style="color:#94a3b8">;</span><br></div></code></pre></div></div></div>
+<p>The flag is evaluated inside the SDK, so this check is free and works offline. When you ask your assistant to build a
+risky feature, ask it to put the feature behind a flag too. Shipping switched off becomes your default, and "undo" stops
+meaning "regenerate and redeploy".</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="guardrails-you-get-for-free">Guardrails you get for free<a href="https://application-control-room.github.io/v1/blog/vibe-coded-it-now-run-it#guardrails-you-get-for-free" class="hash-link" aria-label="Direct link to Guardrails you get for free" title="Direct link to Guardrails you get for free" translate="no">​</a></h2>
+<p>Fast builders tend to skip the boring parts. ACR has sensible defaults for the ones that bite in production:</p>
+<ul>
+<li class=""><strong>Keys that are safe in a browser.</strong> Browser apps use a publishable key that only works from the origins you allow.
+Server secrets are shown once, and the browser SDK refuses to run with one, so a secret cannot slip into a bundle
+unnoticed.</li>
+<li class=""><strong>Privacy by default.</strong> Query strings are stripped, sensitive keys like passwords and tokens are redacted, email
+addresses in free text are masked, and visitor IP addresses are never stored.</li>
+<li class=""><strong>Telemetry that cannot crash your app.</strong> SDK calls never throw, buffers have a fixed size, and if ACR is unreachable
+your app keeps working.</li>
+<li class=""><strong>Roles when you add people.</strong> Invite a collaborator as a viewer or developer; only admins and owners can flip
+controls that affect every user.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="a-monday-morning-the-acr-way">A Monday morning, the ACR way<a href="https://application-control-room.github.io/v1/blog/vibe-coded-it-now-run-it#a-monday-morning-the-acr-way" class="hash-link" aria-label="Direct link to A Monday morning, the ACR way" title="Direct link to A Monday morning, the ACR way" translate="no">​</a></h2>
+<p>Here is what running a small app looks like once this is in place:</p>
+<ol>
+<li class="">Open the app's <strong>Overview</strong>: connected, live visitors, nothing alarming.</li>
+<li class="">Glance at <strong>Errors</strong>: one new issue since last night's release, 14 users affected.</li>
+<li class="">Open it: the stack trace points at the new address form, behind the <code>new-address-form</code> flag.</li>
+<li class="">Set that flag's rollout back to 0%. Within a minute, nobody sees the broken form.</li>
+<li class="">Ask your assistant to fix the bug, paste in the stack trace, deploy when ready.</li>
+<li class="">Turn the flag back on for yourself, check it, then roll it out again.</li>
+</ol>
+<p>No pager drama, no hotfix rush, no full redeploy just to hide a button. Building and running feel like the same
+activity again.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="get-started">Get started<a href="https://application-control-room.github.io/v1/blog/vibe-coded-it-now-run-it#get-started" class="hash-link" aria-label="Direct link to Get started" title="Direct link to Get started" translate="no">​</a></h2>
+<p><a class="" href="https://application-control-room.github.io/v1/docs/getting-started/connect-your-first-app">Connect your first app</a> takes a few minutes. If you want the bigger
+picture first, read <a class="" href="https://application-control-room.github.io/v1/blog/why-web-apps-need-a-control-room">Why web apps need a control room</a>.</p>]]></content>
+        <author>
+            <name>ACR team</name>
+        </author>
+        <category label="Vibe coding" term="Vibe coding"/>
+        <category label="Running production" term="Running production"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[Why web apps need a control room]]></title>
+        <id>https://application-control-room.github.io/v1/blog/why-web-apps-need-a-control-room</id>
+        <link href="https://application-control-room.github.io/v1/blog/why-web-apps-need-a-control-room"/>
+        <updated>2026-10-20T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[Dashboards tell you something is wrong. A control room lets you do something about it in the next minute, not after the next deploy.]]></summary>
+        <content type="html"><![CDATA[<p>It is 9:40 on a Friday evening. Your error tracker lights up: the new checkout is throwing for a slice of users. You
+can see the stack trace. You can see the release it came from. You can even see which line is wrong.</p>
+<p>And then you wait. For a fix to be written, reviewed, built, deployed and cached away. Twenty minutes if you are lucky,
+an hour if the pipeline is slow, longer if the person who knows that code is on a train.</p>
+<p><strong>Seeing a problem and being able to act on it are two different capabilities.</strong> Most web apps have the first and
+almost none of the second.</p>
+<!-- -->
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-deploy-is-the-wrong-lever-for-most-incidents">The deploy is the wrong lever for most incidents<a href="https://application-control-room.github.io/v1/blog/why-web-apps-need-a-control-room#the-deploy-is-the-wrong-lever-for-most-incidents" class="hash-link" aria-label="Direct link to The deploy is the wrong lever for most incidents" title="Direct link to The deploy is the wrong lever for most incidents" translate="no">​</a></h2>
+<p>When the only way to change production is to ship code, every response to every problem goes through the slowest,
+riskiest step you have. A deploy:</p>
+<ul>
+<li class="">takes minutes, and under pressure those minutes feel longer;</li>
+<li class="">carries everything else that was merged since the last release, not just the fix;</li>
+<li class="">can itself fail, which turns one incident into two;</li>
+<li class="">does nothing for users who already have the old JavaScript loaded in an open tab.</li>
+</ul>
+<p>That last point is easy to forget. A browser app keeps running whatever bundle it loaded until the tab reloads. Fix the
+server and the browser half of your users is still on yesterday's code, possibly for days.</p>
+<p>Most of what you want to do in an incident is not "change the code". It is one of a handful of operational moves:</p>
+<table><thead><tr><th>What you need</th><th>What it looks like</th></tr></thead><tbody><tr><td>Stop the bleeding</td><td>Turn the broken feature off</td></tr><tr><td>Buy time</td><td>Show a maintenance page or a banner</td></tr><tr><td>Tell people</td><td>"Payments are delayed, we are on it"</td></tr><tr><td>Get users off a bad version</td><td>Ask or force open tabs to reload</td></tr><tr><td>Undo a bad cache</td><td>Clear service workers and storage in the browser</td></tr><tr><td>Quiet the noise</td><td>Lower log volume or sample telemetry</td></tr></tbody></table>
+<p>None of those should need a build.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-a-control-room-is">What a control room is<a href="https://application-control-room.github.io/v1/blog/why-web-apps-need-a-control-room#what-a-control-room-is" class="hash-link" aria-label="Direct link to What a control room is" title="Direct link to What a control room is" translate="no">​</a></h2>
+<p>Power plants, airports and broadcasters all have one: a room where the people responsible can <strong>see the state of the
+system and change it from the same desk</strong>. The screens and the switches are side by side, because the whole point is
+to close the loop between noticing and acting.</p>
+<p>A web app deserves the same. In practice that means three things.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="1-signals-you-trust">1. Signals you trust<a href="https://application-control-room.github.io/v1/blog/why-web-apps-need-a-control-room#1-signals-you-trust" class="hash-link" aria-label="Direct link to 1. Signals you trust" title="Direct link to 1. Signals you trust" translate="no">​</a></h3>
+<p>You cannot steer what you cannot see. That starts with the basics: errors grouped into issues instead of a firehose,
+logs you can tail and filter, request latency and Core Web Vitals, and whether each release is actually healthy. In ACR
+that is the <strong>Monitor</strong> side: <a class="" href="https://application-control-room.github.io/v1/features/errors">Errors</a>, <a class="" href="https://application-control-room.github.io/v1/features/logs">Logs</a>, <a class="" href="https://application-control-room.github.io/v1/features/performance">Performance</a>,
+<a class="" href="https://application-control-room.github.io/v1/features/releases">Releases</a>, <a class="" href="https://application-control-room.github.io/v1/features/uptime">Uptime</a> and <a class="" href="https://application-control-room.github.io/v1/features/alerts">Alerts</a>.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="2-levers-that-work-in-seconds">2. Levers that work in seconds<a href="https://application-control-room.github.io/v1/blog/why-web-apps-need-a-control-room#2-levers-that-work-in-seconds" class="hash-link" aria-label="Direct link to 2. Levers that work in seconds" title="Direct link to 2. Levers that work in seconds" translate="no">​</a></h3>
+<p>Then you need switches that change behaviour without touching the code path you are worried about:</p>
+<ul>
+<li class=""><strong>Feature flags</strong> to turn a feature off for everyone, or on for a few.</li>
+<li class=""><strong>Maintenance mode</strong> that covers the app with a clear message while you fix things, with an exemption list so your
+team can test before reopening.</li>
+<li class=""><strong>Announcements</strong> to put a banner in front of every visitor.</li>
+<li class="">A <strong>release policy</strong> that prompts outdated tabs to update, or forces a reload below a minimum version.</li>
+<li class=""><strong>One-shot commands</strong> to reload every open tab, or clear Cache Storage, service workers and local storage.</li>
+<li class="">A <strong>telemetry kill switch</strong> and sampling, for the rare incident that your own logging is making worse.</li>
+</ul>
+<p>In ACR these live on the <strong>Control</strong> side: <a class="" href="https://application-control-room.github.io/v1/features/controls">Controls</a> and <a class="" href="https://application-control-room.github.io/v1/features/flags">Flags</a>. Changes reach
+running apps in about a minute, immediately when a tab regains focus.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="3-one-place-one-set-of-permissions">3. One place, one set of permissions<a href="https://application-control-room.github.io/v1/blog/why-web-apps-need-a-control-room#3-one-place-one-set-of-permissions" class="hash-link" aria-label="Direct link to 3. One place, one set of permissions" title="Direct link to 3. One place, one set of permissions" translate="no">​</a></h3>
+<p>When signals and levers live in different tools, you spend the first ten minutes of an incident logging in to things.
+You also end up with different people able to do different things in each tool, with nobody quite sure who can flip
+what.</p>
+<p>In ACR both halves belong to the same app and the same membership. Viewers can read everything. Developers can manage
+keys and flags. Only admins and owners can change controls, because those affect every user at once. The role is the
+same whether you are reading an error or turning on maintenance mode.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="cant-i-just-build-this-myself">"Can't I just build this myself?"<a href="https://application-control-room.github.io/v1/blog/why-web-apps-need-a-control-room#cant-i-just-build-this-myself" class="hash-link" aria-label="Direct link to &quot;Can't I just build this myself?&quot;" title="Direct link to &quot;Can't I just build this myself?&quot;" translate="no">​</a></h2>
+<p>You can, and many teams start that way: an environment variable here, a <code>maintenance.html</code> there, a flags table in the
+database. It works until it doesn't:</p>
+<ul>
+<li class=""><strong>Changing an environment variable usually means a restart</strong>, and often a deploy.</li>
+<li class=""><strong>Home-grown flags tend to be on or off for everyone.</strong> Gradual rollouts that keep each user in the same bucket, and
+allow-lists for your own team, take real work to get right.</li>
+<li class=""><strong>None of it reaches the browser tab that is already open.</strong> That needs a client that polls for changes and knows how
+to show a maintenance screen, a banner or a reload prompt.</li>
+<li class=""><strong>Nobody remembers it exists</strong> until the incident, and then nobody remembers how it works.</li>
+</ul>
+<p>The value of a control room is not any single switch. It is that the switches are always there, always wired up, and
+everyone knows where they are.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="start-small">Start small<a href="https://application-control-room.github.io/v1/blog/why-web-apps-need-a-control-room#start-small" class="hash-link" aria-label="Direct link to Start small" title="Direct link to Start small" translate="no">​</a></h2>
+<p>You do not need to adopt everything on day one. A good first step is a single kill switch: wrap your riskiest new
+feature in a flag, ship it switched off, and turn it on from the console. The first time you turn it off again in the
+middle of a problem, without opening your editor, you will understand why web apps need a control room.</p>
+<p><a class="" href="https://application-control-room.github.io/v1/docs/getting-started/connect-your-first-app">Connect your first app</a>, or read <a class="" href="https://application-control-room.github.io/v1/blog/what-is-acr">What is ACR?</a> for
+the full tour.</p>]]></content>
+        <author>
+            <name>ACR team</name>
+        </author>
+        <category label="Running production" term="Running production"/>
+    </entry>
+    <entry>
+        <title type="html"><![CDATA[What is ACR? A control room for every application you run]]></title>
+        <id>https://application-control-room.github.io/v1/blog/what-is-acr</id>
+        <link href="https://application-control-room.github.io/v1/blog/what-is-acr"/>
+        <updated>2026-10-13T00:00:00.000Z</updated>
+        <summary type="html"><![CDATA[ACR puts observing a web app and changing how it behaves in one console. Here is what it does, how it works and what it deliberately is not.]]></summary>
+        <content type="html"><![CDATA[<p>Most teams run production with two separate toolboxes. One tells you what is happening: analytics, an error tracker,
+a log viewer, maybe an uptime pinger. The other lets you change what happens: a deploy pipeline, a feature-flag
+service, a config file someone has to edit over SSH. When something goes wrong, you are the glue between them.</p>
+<p><strong>ACR (Application Control Room) puts both halves in one place.</strong> You observe what your apps are doing, and you change
+how they behave while they are running, from the same console, through the same SDK.</p>
+<!-- -->
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="two-halves-one-loop">Two halves, one loop<a href="https://application-control-room.github.io/v1/blog/what-is-acr#two-halves-one-loop" class="hash-link" aria-label="Direct link to Two halves, one loop" title="Direct link to Two halves, one loop" translate="no">​</a></h2>
+<!-- -->
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="observe">Observe<a href="https://application-control-room.github.io/v1/blog/what-is-acr#observe" class="hash-link" aria-label="Direct link to Observe" title="Direct link to Observe" translate="no">​</a></h3>
+<p>Install an SDK and your app starts reporting:</p>
+<ul>
+<li class=""><strong>Visitors and sessions</strong>, with pages, referrers, browsers, devices and countries, in <a class="" href="https://application-control-room.github.io/v1/features/analytics">Analytics</a>.</li>
+<li class=""><strong>Your own events</strong>, like <code>checkout_started</code> or <code>invoice_paid</code>, with attributes you can filter on, in <a class="" href="https://application-control-room.github.io/v1/features/events">Events</a>.</li>
+<li class=""><strong>Errors</strong>, grouped into issues with readable stack traces, in <a class="" href="https://application-control-room.github.io/v1/features/errors">Errors</a>.</li>
+<li class=""><strong>Log lines</strong> with levels from <code>debug</code> to <code>fatal</code>, plus a live tail, in <a class="" href="https://application-control-room.github.io/v1/features/logs">Logs</a>.</li>
+<li class=""><strong>Request timings and Core Web Vitals</strong>, with p50, p95 and p99, in <a class="" href="https://application-control-room.github.io/v1/features/performance">Performance</a>.</li>
+<li class=""><strong>Server heartbeats</strong>: CPU, memory, event loop and garbage collection for each Node.js process.</li>
+</ul>
+<p>Around that sit <a class="" href="https://application-control-room.github.io/v1/features/uptime">Uptime</a> checks for your public URLs, <a class="" href="https://application-control-room.github.io/v1/features/pm2">PM2</a> process monitoring,
+<a class="" href="https://application-control-room.github.io/v1/features/releases">Releases</a> that track adoption and crash-free sessions per version, and <a class="" href="https://application-control-room.github.io/v1/features/alerts">Alerts</a>
+that turn the signals you care about into incidents on email, Slack, Discord, Teams or a webhook.</p>
+<h3 class="anchor anchorTargetStickyNavbar_Vzrq" id="control">Control<a href="https://application-control-room.github.io/v1/blog/what-is-acr#control" class="hash-link" aria-label="Direct link to Control" title="Direct link to Control" translate="no">​</a></h3>
+<p>This is the half most monitoring tools leave out. From <a class="" href="https://application-control-room.github.io/v1/features/controls">Controls</a> and <a class="" href="https://application-control-room.github.io/v1/features/flags">Flags</a>
+you can, without a deploy:</p>
+<ul>
+<li class="">turn a <strong>feature flag</strong> on for your team, then 5%, then everyone, and off again in one click;</li>
+<li class="">put the app into <strong>maintenance mode</strong>, with a message and a list of users who can still get in;</li>
+<li class="">show an <strong>announcement banner</strong> to every visitor, now or on a schedule;</li>
+<li class="">tell outdated tabs that a <strong>new version is available</strong>, or force them to reload;</li>
+<li class=""><strong>clear stale caches</strong> and service workers in every open browser;</li>
+<li class="">turn telemetry collection <strong>off entirely</strong>, sample it, or raise the minimum log level.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="how-it-works">How it works<a href="https://application-control-room.github.io/v1/blog/what-is-acr#how-it-works" class="hash-link" aria-label="Direct link to How it works" title="Direct link to How it works" translate="no">​</a></h2>
+<p>Both halves travel over the same channel. The SDK batches telemetry and sends it to ACR. Separately, it polls one
+small, cached JSON document called the <strong>control snapshot</strong>, which holds everything you configured under Controls and
+Flags. SDKs check about once a minute and only download the snapshot when it changed.</p>
+<p>That design has a few consequences you will feel right away:</p>
+<ul>
+<li class=""><strong>No inbound ports.</strong> ACR never connects into your app. Your app always calls out, so there is nothing to expose
+or firewall.</li>
+<li class=""><strong>Flags cost nothing to read.</strong> They are evaluated inside the SDK from the last snapshot, so checking a flag never
+makes a network request, and keeps working offline.</li>
+<li class=""><strong>Changes land in about a minute</strong>, and immediately when a browser tab comes back into focus.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="the-rules-acr-follows">The rules ACR follows<a href="https://application-control-room.github.io/v1/blog/what-is-acr#the-rules-acr-follows" class="hash-link" aria-label="Direct link to The rules ACR follows" title="Direct link to The rules ACR follows" translate="no">​</a></h2>
+<p>A few principles shape the whole product.</p>
+<p><strong>Everything belongs to an app.</strong> There are no workspaces, organizations or environments to configure. "Shop -
+production" and "Shop - staging" are two apps, each with its own keys, members and data. One app is one thing you
+deploy.</p>
+<p><strong>The credential decides the app.</strong> An SDK request never says which app it belongs to. ACR works that out from the API
+key, so nobody can write into another app by editing a payload. Browser keys only work from the origins you allow, and
+server secrets never go into a browser bundle; the browser SDK refuses them.</p>
+<p><strong>Telemetry must never hurt your app.</strong> SDK calls never throw. Buffers have a fixed size. Failed sends retry with
+backoff, and when ACR is busy it asks clients to slow down instead of falling over.</p>
+<p><strong>Privacy by default.</strong> Query strings are stripped, sensitive keys are redacted, email addresses in free text are
+masked, and visitor IP addresses are never stored.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="what-acr-is-not-yet">What ACR is not (yet)<a href="https://application-control-room.github.io/v1/blog/what-is-acr#what-acr-is-not-yet" class="hash-link" aria-label="Direct link to What ACR is not (yet)" title="Direct link to What ACR is not (yet)" translate="no">​</a></h2>
+<p>Being clear about this saves you time:</p>
+<ul>
+<li class="">It is <strong>not a distributed tracing backend.</strong> Trace and span ids travel with your logs and errors so you can filter by
+them, but ACR does not store traces or custom metrics.</li>
+<li class="">It does <strong>not instrument every transport.</strong> HTTP is covered; GraphQL, WebSocket and microservice transports in NestJS
+are not instrumented automatically.</li>
+<li class="">It is <strong>built for JavaScript first.</strong> There are SDKs for the browser, React, Angular, Node.js, Express and NestJS.
+Services in other languages can still send events through the <a class="" href="https://application-control-room.github.io/v1/docs/sdks/public-events">public events API</a>.</li>
+</ul>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="who-it-is-for">Who it is for<a href="https://application-control-room.github.io/v1/blog/what-is-acr#who-it-is-for" class="hash-link" aria-label="Direct link to Who it is for" title="Direct link to Who it is for" translate="no">​</a></h2>
+<p>ACR is for the people who ship a web app and then have to keep it healthy: small product teams without a dedicated
+operations group, developers who want to see their errors next to the switch that fixes them, and anyone who has ever
+wished they could turn a feature off faster than their deploy pipeline allows.</p>
+<h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="try-it">Try it<a href="https://application-control-room.github.io/v1/blog/what-is-acr#try-it" class="hash-link" aria-label="Direct link to Try it" title="Direct link to Try it" translate="no">​</a></h2>
+<p><a class="" href="https://application-control-room.github.io/v1/docs/getting-started/connect-your-first-app">Connect your first app</a> takes a few minutes: create an app, add an API
+key, install an SDK and watch the first visitor arrive. Then open Controls, flip maintenance mode on, and watch your
+own app respond within a minute. That moment is the whole idea of ACR.</p>]]></content>
+        <author>
+            <name>ACR team</name>
+        </author>
+        <category label="Product" term="Product"/>
+    </entry>
+</feed>

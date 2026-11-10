@@ -1,0 +1,1 @@
+"use strict";(self.webpackChunklanding_page=self.webpackChunklanding_page||[]).push([["2209"],{6434(e){e.exports=JSON.parse('{"authors":[{"name":"ACR team","title":"Application Control Room","page":null,"imageURL":"/v1/img/logo.svg","key":"acr-team","count":5}]}')}}]);
